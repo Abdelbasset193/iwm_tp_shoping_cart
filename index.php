@@ -3,19 +3,25 @@ session_start();
 require_once("dbcontroller.php");
 $db_handle = new DBController();
 
-echo "<script>console.log('Debug Objects: " . $_GET["action"] . "' );</script>";
 
 if(!empty($_GET["action"])) {
 switch($_GET["action"]) {
 	case "add":
 		if(!empty($_POST["quantity"])) {
 			$productByCode = $db_handle->runQuery("SELECT * FROM tblproduct WHERE code='" . $_GET["code"] . "'");
+			
+			//echo "<script>console.log('test " . $productByCode[0]["code"]  ."' );</script>";			 
+
 			$itemArray = 
-			array($productByCode[0]["code"]=>array('name'=>$productByCode[0]["name"], 
+			array($productByCode[0]["code"]
+			=>
+			array('name'=>$productByCode[0]["name"], 
 			'code'=>$productByCode[0]["code"],
 			 'quantity'=>$_POST["quantity"],
 			 'price'=>$productByCode[0]["price"],
 			  'image'=>$productByCode[0]["image"]));
+
+			
 			
 			if(!empty($_SESSION["cart_item"])) {
 				if(in_array($productByCode[0]["code"],array_keys($_SESSION["cart_item"]))) {
@@ -40,8 +46,6 @@ switch($_GET["action"]) {
 			foreach($_SESSION["cart_item"] as $k => $v) {
 					if($_GET["code"] == $k)
 						unset($_SESSION["cart_item"][$k]);				
-					if(empty($_SESSION["cart_item"]))
-						unset($_SESSION["cart_item"]);
 			}
 		}
 	break;
@@ -55,6 +59,9 @@ switch($_GET["action"]) {
 <HEAD>
 <TITLE>Simple PHP Shopping Cart</TITLE>
 <link href="style.css" type="text/css" rel="stylesheet" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+
+
 </HEAD>
 <BODY>
 
@@ -67,6 +74,8 @@ if(isset($_SESSION["cart_item"])){
     $total_quantity = 0;
     $total_price = 0;
 ?>	
+
+
 <table class="tbl-cart" cellpadding="10" cellspacing="1">
 <tbody>
 <tr>
@@ -75,7 +84,7 @@ if(isset($_SESSION["cart_item"])){
 <th style="text-align:right;" width="5%">Quantity</th>
 <th style="text-align:right;" width="10%">Unit Price</th>
 <th style="text-align:right;" width="10%">Price</th>
-<th style="text-align:center;" width="5%">Remove/Edit</th>
+<th style="text-align:center;" width="5%">Remove</th>
 </tr>	
 <?php		
     foreach ($_SESSION["cart_item"] as $item){
@@ -84,12 +93,14 @@ if(isset($_SESSION["cart_item"])){
 				<tr>
 				<td><img src="<?php echo  $item["image"]; ?>" class="cart-item-image" /><?php echo $item["name"]; ?></td>
 				<td><?php echo $item["code"]; ?></td>
-				<td style="text-align:right;"><?php echo $item["quantity"]; ?></td>
+				<td style="text-align:right;">
+						<input type="text" class="product-quantity"  id="qte" name="qte" value="<?php echo $item["quantity"]; ?>" size="2" />
+				</td>
 				<td  style="text-align:right;"><?php echo $item["price"]."DH "; ?></td>
 				<td  style="text-align:right;"><?php echo  number_format($item_price,2)."DH "; ?></td>
 				<td style="text-align:center;">
 					<a href="index.php?action=remove&code=<?php echo $item["code"]; ?>" class="btnRemoveAction">
-						<img src="icon-delete.png" alt="Remove Item" />
+						<img src="icon-delete.png" width="20" height="20" alt="Remove Item" />
 					</a>
 				</td>
 				</tr>
@@ -106,7 +117,7 @@ if(isset($_SESSION["cart_item"])){
 <td></td>
 </tr>
 </tbody>
-</table>		
+</table>	
   <?php
 } else {
 ?>
@@ -129,7 +140,9 @@ if(isset($_SESSION["cart_item"])){
 			<div class="product-tile-footer">
 			<div class="product-title"><?php echo $product_array[$key]["name"]; ?></div>
 			<div class="product-price"><?php echo "$".$product_array[$key]["price"]; ?></div>
-			<div class="cart-action"><input type="text" class="product-quantity" name="quantity" value="1" size="2" /><input type="submit" value="Add to Cart" class="btnAddAction" /></div>
+			<div class="cart-action"><input type="text" class="product-quantity" name="quantity" value="1" size="2"/>
+				<input type="submit" value="Add to Cart" class="btnAddAction" />
+			</div>
 			</div>
 			</form>
 		</div>
